@@ -66,15 +66,7 @@ async function predict() {
     log(newState);
     previousState = newState;
   }
-
-  updateTimer();
-}
-
-function updateTimer() {
-  const h = String(Math.floor(focusTime / 3600)).padStart(2, "0");
-  const m = String(Math.floor((focusTime % 3600) / 60)).padStart(2, "0");
-  const s = String(focusTime % 60).padStart(2, "0");
-  timerDisplay.textContent = `${h}:${m}:${s}`;
+  
 }
 
 function log(msg) {
