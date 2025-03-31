@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>집중 타이머 통합앱</title>
+  <!-- ✅ 외부 CSS 연결 -->
+  <link rel="stylesheet" href="cam.css" />
+  <link rel="stylesheet" href="subject.css" />
+  <link rel="stylesheet" href="to-do.css" />
+  
+</head>
+<body>
+  <!-- ✅ 상단 고정바 (햄버거 버튼) -->
+  <header class="top-bar">
+    <button class="hamburger" id="hamburger">☰</button>
+    <img src="image/logo1.png" alt="FocusMate 로고" class="logo" />
+  </header>
+  <!-- ✅ 왼쪽 슬라이드 메뉴 -->
+  <div class="wrapper" id="wrapper">
+    <div class="main-timer" id="main-timer">00:00:00</div>
+
+    <div class="container" id="slide-container">
+      <!-- ✅ 과목 타이머 영역 -->
+      <div id="timer-content">
+        <div class="subject-list" id="subject-list"></div>
+        <button id="add-subject" class="add-subject">+ 과목 추가</button>
+      </div>
+
+      <!-- ✅ To-do 리스트 영역 -->
+      <div id="todo-content" style="display: none;">
+        <div class="calendar-bar" id="calendar-bar"></div>
+        <div class="todo-list" id="todo-list"></div>
+        <button id="add-todo" class="add-todo">todo list 추가하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ 모드 전환 탭 (책갈피 스타일) -->
+  <div class="mode-tabs">
+    <div class="mode-tab active">📘</div>
+    <div class="mode-tab">💻</div>
+    <div class="mode-tab">📝</div>
+  </div>
+
+  <!-- ✅ 메인 콘텐츠 (웹캠 및 시작 버튼) -->
+  <div class="main">
+    <div class="webcam-wrapper" id="webcam-wrapper">
+      <div class="overlay-text" id="overlay-status">캠화면</div>
+    </div>
+    <button id="start-btn">공부 시작!</button>
+  </div>
+
+  <!-- ✅ 필수 스크립트 로딩 -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.4/dist/teachablemachine-image.min.js"></script>
+  <script src="script.js"></script>
+  <!-- HTML 맨 아래 쪽에 스크립트 로딩 순서 중요!! -->
+  <script src="subject.js"></script>     <!-- 과목 타이머, UI 관련 -->
+  <script src="to-do.js"></script>    <!-- Teachable Machine, 캠 분석 관련 -->
+  <script src="cam.js"></script> 
+
+</body>
+</html>
