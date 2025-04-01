@@ -1,4 +1,4 @@
-/* ✅ Reset & Base */
+/* Reset & Base */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -11,7 +11,7 @@
     overflow-x: hidden;
   }
   
-  /* ✅ 상단 바 */
+  /* 상단 바 */
   .top-bar {
     position: fixed;
     top: 0;
@@ -33,7 +33,7 @@
     cursor: pointer;
   }
   
-  /* ✅ 왼쪽 슬라이드 패널 */
+  /* 왼쪽 슬라이드 패널 */
   .wrapper {
     position: fixed;
     top: 56px;
@@ -67,7 +67,7 @@
     border-radius: 10px;
   }
   
-  /* ✅ 과목 리스트 영역 */
+  /* 과목 리스트 영역 */
   .subject-list {
     display: flex;
     flex-direction: column;
@@ -131,7 +131,7 @@
     cursor: pointer;
   }
   
-  /* ✅ 과목별 메뉴 팝업 */
+  /* 과목별 메뉴 팝업 */
   .menu-popup {
     position: absolute;
     top: 45px;

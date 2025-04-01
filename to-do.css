@@ -30,7 +30,7 @@
     color: white;
   }
   
-  /* ✅ 캘린더 바 (요일/날짜) */
+  /* 캘린더 바 (요일/날짜) */
   .calendar-bar {
     display: grid;
     grid-template-columns: repeat(7, 1fr);

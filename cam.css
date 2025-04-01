@@ -1,5 +1,5 @@
 
-/* ✅ 캠과 메인 화면 */
+/* 캠과 메인 화면 */
 .main {
     margin-top: 80px;
     display: flex;
@@ -33,7 +33,7 @@
     white-space: nowrap;
   }
   
-  /* ✅ 시작 버튼 */
+  /* 시작 버튼 */
   #start-btn {
     margin-top: 20px;
     padding: 10px 20px;
@@ -54,8 +54,8 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-1320%, -50%);
-    height: 55px;            /* ✅ 사이즈 조정 */
+    transform: translate(-50%, -50%); /* 화면 중앙에 맞추기 */
+    height: 30px;
     object-fit: contain;
     pointer-events: none;
   }
@@ -65,11 +65,11 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: margin-left 0.4s ease; /* ✅ 슬라이드 효과 */
+    transition: margin-left 0.4s ease; /* 슬라이드 효과 */
     margin-left: 0; /* 기본값 */
   }
   
   .wrapper.active ~ .main {
-    margin-left: 360px; /* ✅ 사이드바가 열리면 캠 오른쪽으로 이동 */
+    margin-left: 360px; /* 사이드바가 열리면 캠 오른쪽으로 이동 */
   }
   

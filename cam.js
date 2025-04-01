@@ -86,7 +86,7 @@ startBtn.addEventListener("click", async () => {
     log("🧠 분석 시작!");
     requestAnimationFrame(loop);
 
-    // ✅ 메인 타이머 시작
+    // 메인 타이머 시작
     mainTimerInterval = setInterval(() => {
       mainTimerSeconds++;
       timerDisplay.textContent = formatTime(mainTimerSeconds);
@@ -99,10 +99,10 @@ startBtn.addEventListener("click", async () => {
       tmWebcam.canvas.remove();
     }
     startBtn.textContent = "공부 시작!";
-    log("✅ 분석 종료됨. 캠 꺼졌습니다.");
+    log("분석 종료됨. 캠 꺼졌습니다.");
     overlayStatus.textContent = "공부 끝!";
 
-    // ✅ 메인 타이머 멈춤
+    // 메인 타이머 멈춤
     clearInterval(mainTimerInterval);
     mainTimerInterval = null;
   }

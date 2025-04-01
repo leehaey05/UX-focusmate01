@@ -13,7 +13,7 @@ document.querySelectorAll('.mode-tab').forEach(tab => {
   });
 });
 
-// ✅ 햄버거 버튼 눌렀을 때 슬라이드 + 책갈피 토글
+// 햄버거 버튼 눌렀을 때 슬라이드 + 책갈피 토글
 hamburger.addEventListener('click', () => {
   wrapper.classList.toggle('active');
 
