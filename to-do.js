@@ -26,7 +26,7 @@ function renderCalendarBar() {
     `;
     div.style.cursor = 'pointer';
   
-    // ✅ 오늘이면 자동 포커스!
+    // 오늘이면 자동 포커스!
     if (date.toDateString() === today.toDateString()) {
       div.classList.add('selected-day');
     }
@@ -152,19 +152,19 @@ function createTodoItem() {
 
 
 document.addEventListener('DOMContentLoaded', () => {
-  // ✅ 처음에 5개만 생성
+  // 처음에 5개만 생성
   for (let i = 0; i < 5; i++) {
     createTodoItem();
   }
 
-  // ✅ 버튼 이벤트는 여기서만 등록
+  // 버튼 이벤트는 여기서만 등록
   const addTodoBtn = document.getElementById('add-todo');
   addTodoBtn.addEventListener('click', () => {
     createTodoItem();
   });
 });
 
-// 📌 화면 아무 곳이나 클릭하면 모든 팝업 닫기
+// 화면 아무 곳이나 클릭하면 모든 팝업 닫기
 document.addEventListener('click', (e) => {
   const allPopups = document.querySelectorAll('.todo-popup');
   const allButtons = document.querySelectorAll('.todo-menu-btn');
