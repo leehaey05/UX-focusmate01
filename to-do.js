@@ -1,40 +1,38 @@
+let selectedDate = new Date().toLocaleDateString(); // 오늘 날짜 기본 선택
+
+
 
 function renderCalendarBar() {
   const calendarBar = document.getElementById('calendar-bar');
   calendarBar.innerHTML = '';
-
   const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
   const today = new Date();
   const currentDay = today.getDay();
   const currentDate = today.getDate();
-
   const weekDates = [];
+
   for (let i = -currentDay; i < 7 - currentDay; i++) {
     const d = new Date(today);
     d.setDate(currentDate + i);
     weekDates.push(d);
   }
 
-  
-
   weekDates.forEach(date => {
     const div = document.createElement('div');
     div.className = 'calendar-day';
+    div.setAttribute('data-date', date.toLocaleDateString()); // ✅ 여기에 추가!
+  
     div.innerHTML = `
       <div>${weekdays[date.getDay()]}</div>
       <div>${date.getDate()}</div>
     `;
-    div.style.cursor = 'pointer';
   
-    // 오늘이면 자동 포커스!
     if (date.toDateString() === today.toDateString()) {
       div.classList.add('selected-day');
     }
   
     div.addEventListener('click', () => {
-      document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected-day'));
-      div.classList.add('selected-day');
-      console.log(`📅 선택된 날짜: ${date.toLocaleDateString()}`);
+      handleDateClick(date); // 👈 날짜 클릭 시 동작
     });
   
     calendarBar.appendChild(div);
@@ -42,14 +40,145 @@ function renderCalendarBar() {
   
 }
 
-function formatTime(s) {
-  const h = String(Math.floor(s / 3600)).padStart(2, '0');
-  const m = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
-  const sec = String(s % 60).padStart(2, '0');
-  return `${h}:${m}:${sec}`;
+function handleDateClick(dateObj) {
+  selectedDate = dateObj.toLocaleDateString();
+  document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected-day'));
+  document.querySelectorAll('.calendar-day').forEach(d => {
+    d.classList.toggle('selected-day', d.dataset.date === dateObj.toLocaleDateString());
+  });
+  
+  loadTodoListForDate(selectedDate);
+}
+
+function saveTodoListForDate(date) {
+  const todos = [];
+  document.querySelectorAll('.todo-item').forEach(item => {
+    const input = item.querySelector('.todo-input');
+    const span = item.querySelector('.todo-text');
+    const checkbox = item.querySelector('.todo-check');
+    const text = input?.value || span?.textContent || '';
+    const checked = checkbox?.checked || false;
+    todos.push({ text, checked });
+  });
+  localStorage.setItem(`todo-${date}`, JSON.stringify(todos));
+}
+
+function loadTodoListForDate(date) {
+  const todoList = document.getElementById('todo-list');
+  todoList.innerHTML = '';
+  const saved = localStorage.getItem(`todo-${date}`);
+  if (saved) {
+    const todos = JSON.parse(saved);
+    todos.forEach(todo => createTodoItem(todo.text, todo.checked));
+  } else {
+    // 없으면 기본 5개 생성
+    for (let i = 0; i < 5; i++) {
+      createTodoItem();
+    }
+  }
+}
+
+function createTodoItem(text = '', checked = false) {
+  const todoList = document.getElementById('todo-list');
+  const todoItem = document.createElement('div');
+  todoItem.className = 'todo-item';
+
+  todoItem.innerHTML = `
+    <label class="todo-check-label">
+      <input type="checkbox" class="todo-check" ${checked ? 'checked' : ''}>
+      <span class="custom-check">✔</span>
+    </label>
+    <input type="text" class="todo-input" value="${text}" placeholder="오늘의 계획을 입력하세요.">
+    <span class="todo-text" style="display: ${text ? 'inline-block' : 'none'};">${text}</span>
+    <button class="todo-menu-btn">⋮</button>
+    <div class="todo-popup" style="display: none;">
+      <button class="edit-btn">수정</button>
+      <button class="delete-btn">삭제</button>
+    </div>
+  `;
+
+  const input = todoItem.querySelector('.todo-input');
+  const span = todoItem.querySelector('.todo-text');
+  const checkbox = todoItem.querySelector('.todo-check');
+  const todoCheckLabel = todoItem.querySelector('.todo-check-label'); // ✅ 추가됨
+  const menuBtn = todoItem.querySelector('.todo-menu-btn');
+  const popup = todoItem.querySelector('.todo-popup');
+  const editBtn = todoItem.querySelector('.edit-btn');
+  const deleteBtn = todoItem.querySelector('.delete-btn');
+
+  let isFinalized = !!text;
+
+  if (isFinalized) input.style.display = 'none';
+
+  // ✅ 체크 이벤트로 파란색 배경 토글 + 저장
+  checkbox.addEventListener('change', () => {
+    todoCheckLabel.classList.toggle('checked', checkbox.checked);
+    saveTodoListForDate(selectedDate);
+  });
+
+  // ✅ 처음부터 체크돼있다면 파란색 배경
+  if (checked) {
+    todoCheckLabel.classList.add('checked');
+  }
+
+  input.addEventListener('blur', () => {
+    const trimmed = input.value.trim();
+
+    if (!trimmed) {
+      // ⚠️ 글자 다 지운 경우 초기화
+      input.value = '';
+      span.textContent = '';
+      input.style.display = 'inline-block';
+      span.style.display = 'none';
+      isFinalized = false;
+      saveTodoListForDate(selectedDate);
+      return;
+    }
+
+    if (!isFinalized) {
+      span.textContent = trimmed;
+      input.style.display = 'none';
+      span.style.display = 'inline-block';
+      isFinalized = true;
+      saveTodoListForDate(selectedDate);
+    }
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') input.blur();
+  });
+
+  deleteBtn.addEventListener('click', () => {
+    todoItem.remove();
+    saveTodoListForDate(selectedDate);
+  });
+
+  editBtn.addEventListener('click', () => {
+    input.style.display = 'inline-block';
+    span.style.display = 'none';
+    input.focus();
+    isFinalized = false;
+    popup.style.display = 'none';
+  });
+
+  menuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.querySelectorAll('.todo-popup').forEach(p => {
+      if (p !== popup) p.style.display = 'none';
+    });
+    popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
+  });
+
+  todoList.appendChild(todoItem);
+
+  // ✅ 항목 추가 직후에도 저장
+  saveTodoListForDate(selectedDate);
 }
 
 
+
+
+// ✅ 초기화는 여기서 딱 한 번만
 document.addEventListener('DOMContentLoaded', () => {
   const slideContainer = document.getElementById('slide-container');
   const timerContent = document.getElementById('timer-content');
@@ -60,123 +189,23 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
 
-      if (index === 0) {
-        slideContainer.style.display = 'block';
-        timerContent.style.display = 'block';
-        todoContent.style.display = 'none';
-      } else if (index === 1) {
-        slideContainer.style.display = 'block';
-        timerContent.style.display = 'none';
-        todoContent.style.display = 'block';
-      } else {
-        slideContainer.style.display = 'none';
-      }
+      slideContainer.style.display = 'block';
+      timerContent.style.display = index === 0 ? 'block' : 'none';
+      todoContent.style.display = index === 1 ? 'block' : 'none';
     });
   });
 
-  renderCalendarBar(); // 날짜 생성
-});
+  renderCalendarBar();
+  loadTodoListForDate(selectedDate);
 
-function createTodoItem() {
-  const todoList = document.getElementById('todo-list');
-  const todoItem = document.createElement('div');
-  todoItem.className = 'todo-item';
+  const addTodoBtn = document.getElementById('add-todo');
+  addTodoBtn.addEventListener('click', () => createTodoItem());
 
-  todoItem.innerHTML = `
-    <label class="todo-check-label">
-      <input type="checkbox" class="todo-check">
-      <span class="custom-check">✔</span>
-    </label>
-    <input type="text" class="todo-input" placeholder="오늘의 계획을 입력하세요.">
-    <span class="todo-text" style="display:none;"></span>
-    <button class="todo-menu-btn">⋮</button>
-    <div class="todo-popup" style="display: none;">
-      <button class="edit-btn">수정</button>
-      <button class="delete-btn">삭제</button>
-    </div>
-  `;
-
-  const input = todoItem.querySelector('.todo-input');
-  const span = todoItem.querySelector('.todo-text');
-  const menuBtn = todoItem.querySelector('.todo-menu-btn');
-  const popup = todoItem.querySelector('.todo-popup');
-  const editBtn = todoItem.querySelector('.edit-btn');
-  const deleteBtn = todoItem.querySelector('.delete-btn');
-
-  let isFinalized = false;
-
-  // 입력 완료 후 블러되면 span으로 전환
-  input.addEventListener('blur', () => {
-    if (!isFinalized && input.value.trim() !== '') {
-      span.textContent = input.value.trim();
-      input.style.display = 'none';
-      span.style.display = 'inline-block';
-      isFinalized = true;
+  // 팝업 닫기
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.todo-popup') && !e.target.closest('.todo-menu-btn')) {
+      document.querySelectorAll('.todo-popup').forEach(p => p.style.display = 'none');
     }
   });
-
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') input.blur();
-  });
-
-  // 점점점 버튼 클릭 → 메뉴 토글
-  menuBtn.addEventListener('click', (e) => {
-    e.stopPropagation(); // 클릭 이벤트가 바깥으로 안 퍼지게
-  
-    // 다른 팝업은 모두 닫아주고
-    document.querySelectorAll('.todo-popup').forEach(p => {
-      if (p !== popup) p.style.display = 'none';
-    });
-  
-    // 내 것만 토글
-    popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
-  });
-  
-  // 수정 버튼 클릭 → 다시 input 보이게
-  editBtn.addEventListener('click', () => {
-    input.style.display = 'inline-block';
-    span.style.display = 'none';
-    input.focus();
-    popup.style.display = 'none';
-    isFinalized = false; // 다시 수정 허용
-  });
-
-  // 삭제 버튼
-  deleteBtn.addEventListener('click', () => {
-    todoItem.remove();
-  });
-
-  todoList.appendChild(todoItem);
-}
-
-
-
-document.addEventListener('DOMContentLoaded', () => {
-  // 처음에 5개만 생성
-  for (let i = 0; i < 5; i++) {
-    createTodoItem();
-  }
-
-  // 버튼 이벤트는 여기서만 등록
-  const addTodoBtn = document.getElementById('add-todo');
-  addTodoBtn.addEventListener('click', () => {
-    createTodoItem();
-  });
 });
-
-// 화면 아무 곳이나 클릭하면 모든 팝업 닫기
-document.addEventListener('click', (e) => {
-  const allPopups = document.querySelectorAll('.todo-popup');
-  const allButtons = document.querySelectorAll('.todo-menu-btn');
-
-  if (![...allPopups, ...allButtons].some(el => el.contains(e.target))) {
-    allPopups.forEach(popup => popup.style.display = 'none');
-  }
-});
-
-
-
-
-
-
 
