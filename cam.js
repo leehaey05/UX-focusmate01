@@ -1,32 +1,71 @@
+// --- 캠 및 Teachable Machine 기능 전체 (합쳐진 코드) ---
 
-// --- 캠 및 Teachable Machine 기능 20243951이혜인 ---
 const URL = "./my_model/";
 let model, tmWebcam;
-let focusTime = 0;
-let distractionTime = 0;
 let tracking = false;
 let previousState = "";
 let lastPredictionTime = 0;
-const webcamWrapper = document.getElementById("webcam-wrapper");
-const timerDisplay = document.getElementById("main-timer");
-const overlayStatus = document.getElementById("overlay-status");
-const startBtn = document.getElementById("start-btn");
+let focusTime = 0, distractionTime = 0;
+let sessionTimerInterval = null;
+let sessionTimerSeconds = 0;
+let videoStream = null;
 
+const webcamWrapper = document.getElementById("webcam-wrapper");
+const overlayStatus = document.getElementById("overlay-status");
+const timerDisplay = document.getElementById("main-timer");
+const startBtn = document.getElementById("start-btn");
+const camImage = document.getElementById("cam-image"); // ✅ 설명 이미지 선택자 추가
+
+// 모델 로드
 async function loadModel() {
   const modelURL = URL + "model.json";
   const metadataURL = URL + "metadata.json";
   model = await tmImage.load(modelURL, metadataURL);
 }
 
+// 캠 설정
 async function setupWebcam() {
-  tmWebcam = new tmImage.Webcam(1200, 800, true);
-  await tmWebcam.setup();
+  const constraints = {
+    video: {
+      width: { ideal: 1280 },
+      height: { ideal: 720 },
+      facingMode: "user"
+    }
+  };
+
+  videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+  const video = document.createElement("video");
+  video.setAttribute("autoplay", "true");
+  video.setAttribute("playsinline", "true");
+  video.srcObject = videoStream;
+  video.style.objectFit = "cover";
+  video.style.width = "100%";
+  video.style.height = "100%";
+  video.style.position = "absolute";
+  video.style.top = "0";
+  video.style.left = "0";
+  video.style.zIndex = "0";
+  video.style.transform = "scaleX(-1)";
+  await video.play();
+
+  const oldVideo = webcamWrapper.querySelector("video");
+  if (oldVideo) oldVideo.remove();
+  webcamWrapper.appendChild(video);
+
+  const track = videoStream.getVideoTracks()[0];
+  const capabilities = track.getCapabilities();
+  console.log("🔍 capabilities:", capabilities);
+  if (capabilities.zoom) {
+    track.applyConstraints({ advanced: [{ zoom: 1.5 }] });
+  }
+
+  tmWebcam = new tmImage.Webcam(1280, 720, true);
+  await tmWebcam.setup({ video: video });
   await tmWebcam.play();
-  webcamWrapper.appendChild(tmWebcam.canvas);
-  tmWebcam.canvas.style.width = "1200px";
-  tmWebcam.canvas.style.height = "800px";
+  tmWebcam.canvas.style.transform = "scaleX(-1)";
 }
 
+// 메인 루프
 async function loop(timestamp) {
   if (tracking) {
     await tmWebcam.update();
@@ -38,6 +77,7 @@ async function loop(timestamp) {
   }
 }
 
+// 예측
 async function predict() {
   const prediction = await model.predict(tmWebcam.canvas);
   prediction.sort((a, b) => b.probability - a.probability);
@@ -55,6 +95,8 @@ async function predict() {
       newState = "❌ 집중 깨짐! (휴대폰 감지)";
     } else if (label.includes("자리") || label.includes("비움")) {
       newState = "🚪 자리에 없음!";
+    } else if (label.includes("노트북")) {
+      newState = "💻 노트북 사용 중";
     } else {
       newState = `🤔 ${label} (알 수 없음)`;
     }
@@ -66,17 +108,26 @@ async function predict() {
     log(newState);
     previousState = newState;
   }
-  
+
+  const updateFocusStats = window.getFocusSessionUpdater?.();
+  if (updateFocusStats) {
+    updateFocusStats(label);
+  }
 }
 
+// 상태 출력
 function log(msg) {
   console.log(`[${new Date().toLocaleTimeString()}] ${msg}`);
   overlayStatus.textContent = msg;
   overlayStatus.style.display = 'block';
 }
 
+// 타이머 및 버튼
 startBtn.addEventListener("click", async () => {
   if (!tracking) {
+    // ✅ 공부 시작 시 이미지 즉시 숨기기
+    if (camImage) camImage.style.display = "none";
+
     log("📦 모델 불러오는 중...");
     await tf.setBackend("webgl");
     await loadModel();
@@ -86,24 +137,49 @@ startBtn.addEventListener("click", async () => {
     log("🧠 분석 시작!");
     requestAnimationFrame(loop);
 
-    // 메인 타이머 시작
-    mainTimerInterval = setInterval(() => {
-      mainTimerSeconds++;
-      timerDisplay.textContent = formatTime(mainTimerSeconds);
+    sessionTimerInterval = setInterval(() => {
+      sessionTimerSeconds++;
+      timerDisplay.textContent = formatTime(sessionTimerSeconds);
     }, 1000);
+
+    window.startFocusSession();
 
   } else {
     tracking = false;
+
     if (tmWebcam) {
       await tmWebcam.stop();
       tmWebcam.canvas.remove();
     }
+
+    if (videoStream) {
+      videoStream.getTracks().forEach(track => track.stop());
+    }
+
+    const video = webcamWrapper.querySelector("video");
+    if (video) video.style.display = "none";
+
+    if (camImage) camImage.style.display = "block";
+
     startBtn.textContent = "공부 시작!";
     log("분석 종료됨. 캠 꺼졌습니다.");
+    
     overlayStatus.textContent = "공부 끝!";
+    overlayStatus.style.display = "none";  // ✅ 자막 숨기기
 
-    // 메인 타이머 멈춤
-    clearInterval(mainTimerInterval);
-    mainTimerInterval = null;
+    clearInterval(sessionTimerInterval);
+    sessionTimerInterval = null;
+
+    window.endFocusSession();
   }
+
+
 });
+
+// 시간 형식
+function formatTime(s) {
+  const h = String(Math.floor(s / 3600)).padStart(2, '0');
+  const m = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+  const sec = String(s % 60).padStart(2, '0');
+  return `${h}:${m}:${sec}`;
+}

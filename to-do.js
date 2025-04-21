@@ -1,7 +1,7 @@
-let selectedDate = new Date().toLocaleDateString(); // 오늘 날짜 기본 선택
+// 📅 오늘 날짜로 초기화된 selectedDate
+let selectedDate = new Date().toLocaleDateString();
 
-
-
+// ✅ 캘린더 바 렌더링
 function renderCalendarBar() {
   const calendarBar = document.getElementById('calendar-bar');
   calendarBar.innerHTML = '';
@@ -20,34 +20,26 @@ function renderCalendarBar() {
   weekDates.forEach(date => {
     const div = document.createElement('div');
     div.className = 'calendar-day';
-    div.setAttribute('data-date', date.toLocaleDateString()); // ✅ 여기에 추가!
-  
+    div.setAttribute('data-date', date.toLocaleDateString());
     div.innerHTML = `
       <div>${weekdays[date.getDay()]}</div>
       <div>${date.getDate()}</div>
     `;
-  
     if (date.toDateString() === today.toDateString()) {
       div.classList.add('selected-day');
     }
-  
-    div.addEventListener('click', () => {
-      handleDateClick(date); // 👈 날짜 클릭 시 동작
-    });
-  
+    div.addEventListener('click', () => handleDateClick(date));
     calendarBar.appendChild(div);
   });
-  
 }
 
 function handleDateClick(dateObj) {
   selectedDate = dateObj.toLocaleDateString();
-  document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected-day'));
   document.querySelectorAll('.calendar-day').forEach(d => {
-    d.classList.toggle('selected-day', d.dataset.date === dateObj.toLocaleDateString());
+    d.classList.toggle('selected-day', d.dataset.date === selectedDate);
   });
-  
   loadTodoListForDate(selectedDate);
+  loadStatsForDate(selectedDate);
 }
 
 function saveTodoListForDate(date) {
@@ -71,10 +63,7 @@ function loadTodoListForDate(date) {
     const todos = JSON.parse(saved);
     todos.forEach(todo => createTodoItem(todo.text, todo.checked));
   } else {
-    // 없으면 기본 5개 생성
-    for (let i = 0; i < 5; i++) {
-      createTodoItem();
-    }
+    for (let i = 0; i < 5; i++) createTodoItem();
   }
 }
 
@@ -82,7 +71,6 @@ function createTodoItem(text = '', checked = false) {
   const todoList = document.getElementById('todo-list');
   const todoItem = document.createElement('div');
   todoItem.className = 'todo-item';
-
   todoItem.innerHTML = `
     <label class="todo-check-label">
       <input type="checkbox" class="todo-check" ${checked ? 'checked' : ''}>
@@ -100,59 +88,39 @@ function createTodoItem(text = '', checked = false) {
   const input = todoItem.querySelector('.todo-input');
   const span = todoItem.querySelector('.todo-text');
   const checkbox = todoItem.querySelector('.todo-check');
-  const todoCheckLabel = todoItem.querySelector('.todo-check-label'); // ✅ 추가됨
+  const label = todoItem.querySelector('.todo-check-label');
   const menuBtn = todoItem.querySelector('.todo-menu-btn');
   const popup = todoItem.querySelector('.todo-popup');
   const editBtn = todoItem.querySelector('.edit-btn');
   const deleteBtn = todoItem.querySelector('.delete-btn');
 
   let isFinalized = !!text;
-
   if (isFinalized) input.style.display = 'none';
+  if (checked) label.classList.add('checked');
 
-  // ✅ 체크 이벤트로 파란색 배경 토글 + 저장
   checkbox.addEventListener('change', () => {
-    todoCheckLabel.classList.toggle('checked', checkbox.checked);
+    label.classList.toggle('checked', checkbox.checked);
     saveTodoListForDate(selectedDate);
   });
 
-  // ✅ 처음부터 체크돼있다면 파란색 배경
-  if (checked) {
-    todoCheckLabel.classList.add('checked');
-  }
-
   input.addEventListener('blur', () => {
     const trimmed = input.value.trim();
-
     if (!trimmed) {
-      // ⚠️ 글자 다 지운 경우 초기화
-      input.value = '';
-      span.textContent = '';
+      input.value = ''; span.textContent = '';
       input.style.display = 'inline-block';
       span.style.display = 'none';
       isFinalized = false;
-      saveTodoListForDate(selectedDate);
-      return;
-    }
-
-    if (!isFinalized) {
+    } else {
       span.textContent = trimmed;
       input.style.display = 'none';
       span.style.display = 'inline-block';
       isFinalized = true;
-      saveTodoListForDate(selectedDate);
     }
-  });
-
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') input.blur();
-  });
-
-  deleteBtn.addEventListener('click', () => {
-    todoItem.remove();
     saveTodoListForDate(selectedDate);
   });
 
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); });
+  deleteBtn.addEventListener('click', () => { todoItem.remove(); saveTodoListForDate(selectedDate); });
   editBtn.addEventListener('click', () => {
     input.style.display = 'inline-block';
     span.style.display = 'none';
@@ -160,25 +128,33 @@ function createTodoItem(text = '', checked = false) {
     isFinalized = false;
     popup.style.display = 'none';
   });
-
   menuBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    document.querySelectorAll('.todo-popup').forEach(p => {
-      if (p !== popup) p.style.display = 'none';
-    });
+    document.querySelectorAll('.todo-popup').forEach(p => p !== popup && (p.style.display = 'none'));
     popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
   });
 
   todoList.appendChild(todoItem);
-
-  // ✅ 항목 추가 직후에도 저장
   saveTodoListForDate(selectedDate);
 }
 
+function loadStatsForDate(date) {
+  const stats = JSON.parse(localStorage.getItem(`stats-${date}`));
+  document.getElementById('total-time').textContent = stats ? formatTime(stats.total) : '00:00:00';
+  document.getElementById('todo-focus-time').textContent = stats ? formatTime(stats.focus) : '00:00:00';
+  document.getElementById('todo-distraction-time').textContent = stats ? formatTime(stats.distraction) : '00:00:00';
+  document.getElementById('todo-unknown-time').textContent = stats ? formatTime(stats.unknown) : '00:00:00';
+}
 
+function formatTime(seconds) {
+  const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+  const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+  const s = String(seconds % 60).padStart(2, '0');
+  return `${h}:${m}:${s}`;
+}
 
+// ✅ DOMContentLoaded 에서 초기 렌더링 및 이벤트 등록
 
-// ✅ 초기화는 여기서 딱 한 번만
 document.addEventListener('DOMContentLoaded', () => {
   const slideContainer = document.getElementById('slide-container');
   const timerContent = document.getElementById('timer-content');
@@ -188,7 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-
       slideContainer.style.display = 'block';
       timerContent.style.display = index === 0 ? 'block' : 'none';
       todoContent.style.display = index === 1 ? 'block' : 'none';
@@ -197,15 +172,73 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderCalendarBar();
   loadTodoListForDate(selectedDate);
+  loadStatsForDate(selectedDate);
 
-  const addTodoBtn = document.getElementById('add-todo');
-  addTodoBtn.addEventListener('click', () => createTodoItem());
+  document.getElementById('add-todo').addEventListener('click', () => createTodoItem());
 
-  // 팝업 닫기
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.todo-popup') && !e.target.closest('.todo-menu-btn')) {
-      document.querySelectorAll('.todo-popup').forEach(p => p.style.display = 'none');
-    }
-  });
+  // ✅ 통계 초기화 버튼
+  const resetBtn = document.getElementById('reset-summary');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      document.getElementById('total-time').textContent = '00:00:00';
+      document.getElementById('todo-distraction-time').textContent = '00:00:00';
+      document.getElementById('todo-focus-time').textContent = '00:00:00';
+      document.getElementById('todo-unknown-time').textContent = '00:00:00';
+
+      const resetStats = {
+        total: 0,
+        focus: 0,
+        distraction: 0,
+        unknown: 0
+      };
+      localStorage.setItem(`stats-${selectedDate}`, JSON.stringify(resetStats));
+
+      const popup = resetBtn.closest('.summary-popup');
+      if (popup) popup.style.display = 'none';
+    });
+  }
+
+document.addEventListener('click', (e) => {
+  const allTodoPopups = document.querySelectorAll('.todo-popup');
+  const summaryBtn = document.querySelector('.summary-menu-btn');
+  const summaryPopup = document.querySelector('.summary-popup');
+
+  const clickedTodoBtn = e.target.closest('.todo-menu-btn');
+  const clickedTodoPopup = e.target.closest('.todo-popup');
+  const clickedSummaryBtn = e.target.closest('.summary-menu-btn');
+  const clickedSummaryPopup = e.target.closest('.summary-popup');
+
+  // 1️⃣ todo 버튼 클릭 시
+  if (clickedTodoBtn) {
+    // summary 닫기
+    if (summaryPopup) summaryPopup.style.display = 'none';
+
+    // 현재 todo만 열기
+    const thisPopup = clickedTodoBtn.nextElementSibling;
+    allTodoPopups.forEach(p => {
+      if (p !== thisPopup) p.style.display = 'none';
+    });
+    thisPopup.style.display = thisPopup.style.display === 'block' ? 'none' : 'block';
+    return;
+  }
+
+  // 2️⃣ summary 버튼 클릭 시
+  if (clickedSummaryBtn) {
+    // 모든 todo 닫기
+    allTodoPopups.forEach(p => p.style.display = 'none');
+
+    // summary popup toggle
+    summaryPopup.style.display = summaryPopup.style.display === 'block' ? 'none' : 'block';
+    return;
+  }
+
+  // 3️⃣ 외부 클릭 시 모두 닫기
+  if (!clickedTodoPopup && !clickedSummaryPopup) {
+    allTodoPopups.forEach(p => p.style.display = 'none');
+    if (summaryPopup) summaryPopup.style.display = 'none';
+  }
 });
 
+  
+  
+});
