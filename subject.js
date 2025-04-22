@@ -1,27 +1,13 @@
 let mainTimerInterval = null;
 let mainTimerSeconds = 0;
 
-// --- 햄버거 메뉴 토글 ---
-const wrapper = document.getElementById('wrapper');
-const modeTabs = document.querySelector('.mode-tabs');
-const hamburger = document.getElementById('hamburger');
+
 
 document.querySelectorAll('.mode-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
   });
-});
-
-// ✅ 햄버거 버튼 눌렀을 때 슬라이드 + 책갈피 토글
-hamburger.addEventListener('click', () => {
-  wrapper.classList.toggle('active');
-
-  if (wrapper.classList.contains('active')) {
-    modeTabs.style.left = '360px'; // 슬라이드 오른쪽에 책갈피 보여줌
-  } else {
-    modeTabs.style.left = '-100px'; // 숨김
-  }
 });
 
 

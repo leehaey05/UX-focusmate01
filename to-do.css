@@ -292,3 +292,7 @@
   grid-template-columns: 1fr auto auto; /* label / time / menu */
   align-items: center;
 }
+
+.mode-tab:hover {
+  background-color: #e0f7ff;
+}

@@ -1,4 +1,4 @@
-// --- 캠 및 Teachable Machine 기능 전체 (합쳐진 코드) ---
+// --- 캠 + 감성 모드 + Teachable Machine 예측 통합 ---
 
 const URL = "./my_model/";
 let model, tmWebcam;
@@ -14,16 +14,28 @@ const webcamWrapper = document.getElementById("webcam-wrapper");
 const overlayStatus = document.getElementById("overlay-status");
 const timerDisplay = document.getElementById("main-timer");
 const startBtn = document.getElementById("start-btn");
-const camImage = document.getElementById("cam-image"); // ✅ 설명 이미지 선택자 추가
+const camImage = document.getElementById("cam-image");
 
-// 모델 로드
+// 🎧 감성 모드
+const moodModeBtn = document.getElementById("mood-mode-btn");
+const moodOverlay = document.getElementById("mood-overlay");
+let moodModeOn = false;
+
+moodModeBtn.addEventListener("click", () => {
+  moodModeOn = !moodModeOn;
+  webcamWrapper.classList.toggle("mood-mode", moodModeOn);
+  moodOverlay.style.display = moodModeOn ? "block" : "none";
+  moodModeBtn.textContent = moodModeOn ? "👀" : "🎧";
+});
+
+// 📦 모델 로드
 async function loadModel() {
   const modelURL = URL + "model.json";
   const metadataURL = URL + "metadata.json";
   model = await tmImage.load(modelURL, metadataURL);
 }
 
-// 캠 설정
+// 📷 웹캠 설정
 async function setupWebcam() {
   const constraints = {
     video: {
@@ -35,37 +47,33 @@ async function setupWebcam() {
 
   videoStream = await navigator.mediaDevices.getUserMedia(constraints);
   const video = document.createElement("video");
-  video.setAttribute("autoplay", "true");
-  video.setAttribute("playsinline", "true");
+  video.setAttribute("autoplay", true);
+  video.setAttribute("playsinline", true);
   video.srcObject = videoStream;
-  video.style.objectFit = "cover";
-  video.style.width = "100%";
-  video.style.height = "100%";
-  video.style.position = "absolute";
-  video.style.top = "0";
-  video.style.left = "0";
-  video.style.zIndex = "0";
-  video.style.transform = "scaleX(-1)";
+  Object.assign(video.style, {
+    objectFit: "cover",
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    top: "0",
+    left: "0",
+    zIndex: "0",
+    transform: "scaleX(-1)"
+  });
+
   await video.play();
 
   const oldVideo = webcamWrapper.querySelector("video");
   if (oldVideo) oldVideo.remove();
   webcamWrapper.appendChild(video);
 
-  const track = videoStream.getVideoTracks()[0];
-  const capabilities = track.getCapabilities();
-  console.log("🔍 capabilities:", capabilities);
-  if (capabilities.zoom) {
-    track.applyConstraints({ advanced: [{ zoom: 1.5 }] });
-  }
-
   tmWebcam = new tmImage.Webcam(1280, 720, true);
-  await tmWebcam.setup({ video: video });
+  await tmWebcam.setup({ video });
   await tmWebcam.play();
   tmWebcam.canvas.style.transform = "scaleX(-1)";
 }
 
-// 메인 루프
+// 🔁 예측 루프
 async function loop(timestamp) {
   if (tracking) {
     await tmWebcam.update();
@@ -77,15 +85,15 @@ async function loop(timestamp) {
   }
 }
 
-// 예측
+// 🧠 예측 처리
 async function predict() {
   const prediction = await model.predict(tmWebcam.canvas);
   prediction.sort((a, b) => b.probability - a.probability);
   const top = prediction[0];
   const label = top.className;
   const confidence = top.probability;
-  let newState = "";
 
+  let newState = "❓ 인식 불확실";
   if (confidence > 0.85) {
     if (label.includes("공부")) {
       distractionTime = 0;
@@ -100,8 +108,6 @@ async function predict() {
     } else {
       newState = `🤔 ${label} (알 수 없음)`;
     }
-  } else {
-    newState = "❓ 인식 불확실";
   }
 
   if (newState !== previousState) {
@@ -110,28 +116,26 @@ async function predict() {
   }
 
   const updateFocusStats = window.getFocusSessionUpdater?.();
-  if (updateFocusStats) {
-    updateFocusStats(label);
-  }
+  if (updateFocusStats) updateFocusStats(label);
 }
 
-// 상태 출력
+// 📝 자막 출력
 function log(msg) {
   console.log(`[${new Date().toLocaleTimeString()}] ${msg}`);
   overlayStatus.textContent = msg;
-  overlayStatus.style.display = 'block';
+  overlayStatus.style.display = "block";
 }
 
-// 타이머 및 버튼
+// ▶️ 공부 시작/끝 버튼
 startBtn.addEventListener("click", async () => {
   if (!tracking) {
-    // ✅ 공부 시작 시 이미지 즉시 숨기기
     if (camImage) camImage.style.display = "none";
 
     log("📦 모델 불러오는 중...");
     await tf.setBackend("webgl");
     await loadModel();
     await setupWebcam();
+
     tracking = true;
     startBtn.textContent = "공부 끝!";
     log("🧠 분석 시작!");
@@ -142,7 +146,7 @@ startBtn.addEventListener("click", async () => {
       timerDisplay.textContent = formatTime(sessionTimerSeconds);
     }, 1000);
 
-    window.startFocusSession();
+    window.startFocusSession?.();
 
   } else {
     tracking = false;
@@ -157,29 +161,25 @@ startBtn.addEventListener("click", async () => {
     }
 
     const video = webcamWrapper.querySelector("video");
-    if (video) video.style.display = "none";
+    if (video) video.remove();
 
     if (camImage) camImage.style.display = "block";
 
     startBtn.textContent = "공부 시작!";
     log("분석 종료됨. 캠 꺼졌습니다.");
-    
-    overlayStatus.textContent = "공부 끝!";
-    overlayStatus.style.display = "none";  // ✅ 자막 숨기기
+    overlayStatus.style.display = "none";
 
     clearInterval(sessionTimerInterval);
     sessionTimerInterval = null;
 
-    window.endFocusSession();
+    window.endFocusSession?.();
   }
-
-
 });
 
-// 시간 형식
+// ⏰ 시간 포맷
 function formatTime(s) {
-  const h = String(Math.floor(s / 3600)).padStart(2, '0');
-  const m = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
-  const sec = String(s % 60).padStart(2, '0');
+  const h = String(Math.floor(s / 3600)).padStart(2, "0");
+  const m = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+  const sec = String(s % 60).padStart(2, "0");
   return `${h}:${m}:${sec}`;
 }

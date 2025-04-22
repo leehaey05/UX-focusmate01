@@ -97,7 +97,7 @@ window.setFocusSessionResult = (stats) => {
 // 🍩 도넛 그래프
 function drawFocusChart() {
   const graphContainer = document.getElementById('focus-stats-graph');
-  graphContainer.innerHTML = '<canvas id="focus-chart" width="300" height="300"></canvas>';
+  graphContainer.innerHTML = '<canvas id="focus-chart"></canvas>';
   const ctx = document.getElementById('focus-chart').getContext('2d');
 
   const data = [
@@ -107,6 +107,14 @@ function drawFocusChart() {
   ];
   const total = data.reduce((a, b) => a + b, 0);
 
+  if (total < 1) {
+    graphContainer.innerHTML = `<div style="text-align:center; color:#888; font-size:0.95rem;">
+      아직 그래프를 그릴 만큼의 데이터가 없습니다. <br>
+      공부 세션을 조금 더 진행해 주세요!
+    </div>`;
+    return;
+  }
+
   const chartData = {
     labels: ['학습 몰입 🧠', '몰입 저해 📵', '기타 ⏳'],
     datasets: [{
@@ -115,7 +123,6 @@ function drawFocusChart() {
       borderWidth: 0
     }]
   };
-
   const options = {
     cutout: '65%',
     plugins: {
@@ -129,11 +136,11 @@ function drawFocusChart() {
           }
         }
       },
-      legend: {
-        display: false
-      }
+      legend: { display: false }
     }
-  };
+  }
+  
+  
 
   if (chart) chart.destroy();
   chart = new Chart(ctx, {

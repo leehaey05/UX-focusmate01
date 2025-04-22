@@ -1,4 +1,4 @@
-/* 캠과 메인 화면 */
+/* 🔵 메인 콘텐츠 영역 */
 .main {
   margin-top: 80px;
   display: flex;
@@ -8,17 +8,18 @@
   margin-left: 0;
 }
 
-/* 사이드바 열렸을 때 캠 오른쪽으로 이동 */
+/* 📂 사이드바가 열릴 때 메인 이동 */
 .wrapper.active ~ .main {
   margin-left: 360px;
 }
 
+/* 📷 웹캠 박스 */
 .webcam-wrapper {
   position: relative;
   width: 1200px;
   height: 800px;
-  background: #ffffff; 
-  border: 2px solid #00BEFF;
+  background: #ffffff;
+  border: 2px solid #dddddd;
   border-radius: 10px;
   overflow: hidden;
   display: flex;
@@ -26,7 +27,7 @@
   justify-content: center;
 }
 
-/* 캠 비디오 또는 TM canvas가 이 스타일을 따름 */
+/* 🎥 캠 비디오 or TM canvas */
 .webcam-wrapper video,
 .webcam-wrapper canvas {
   width: 100%;
@@ -34,7 +35,20 @@
   object-fit: cover;
 }
 
-/* 상태 자막 텍스트 */
+/* 🖼️ 캠 설명 이미지 */
+#cam-image {
+  width: 60%;
+  height: auto;
+  object-fit: contain;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  display: block;
+}
+
+/* 🧠 분석 상태 자막 */
 .overlay-text {
   position: absolute;
   bottom: 20px;
@@ -51,7 +65,7 @@
   white-space: nowrap;
 }
 
-/* 시작 버튼 */
+/* ▶️ 공부 시작 버튼 */
 #start-btn {
   margin-top: 20px;
   padding: 10px 20px;
@@ -68,25 +82,112 @@
   background-color: #0095c7;
 }
 
-/* 로고 (중앙 정렬용) */
-.logo {
+/* 🎧 감성 모드 버튼 (웹캠 우측 상단) */
+#mood-mode-btn {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  height: 30px;
-  object-fit: contain;
-  pointer-events: none;
+  top: 12px;
+  right: 12px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: none;
+  font-size: 20px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  z-index: 11;
+  transition: background-color 0.3s, transform 0.3s;
 }
 
-#cam-image {
-  width: 60%; /* 이미지 크기를 50%로 줄임 */
-  height: auto; /* 비율 맞추기 */
-  object-fit: contain; /* 이미지 비율 유지 */
-  position: absolute; /* 절대 위치로 설정 */
-  top: 50%; /* 화면 중앙으로 이동 */
-  left: 50%;
-  transform: translate(-50%, -50%); /* 정확히 가운데 정렬 */
-  z-index: 1; /* 다른 콘텐츠 위에 이미지가 표시되도록 */
-  display: block; /* 이미지 표시 */
+#mood-mode-btn:hover {
+  background-color: #eee;
+  transform: scale(1.05);
+}
+
+/* 📺 감성 모드 전체 오버레이 */
+#mood-overlay {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  background: transparent;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 감성 모드 전체 박스 */
+.mood-box {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.mood-title {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 36px;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 36px;
+  text-align: center;
+  color: #fff; /* 글자색 흰색으로 바꾸는 것도 추천 */
+  background-color: rgba(0, 0, 0, 0.4); /* 반투명 검정 배경 */
+  z-index: 2;
+}
+
+
+/* YouTube 영상: 아래까지 전부 채움 */
+#mood-video-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+
+/* 감성 모드일 때 캠/자막 숨기고 테두리 제거 */
+.webcam-wrapper.mood-mode {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.webcam-wrapper.mood-mode #cam-image,
+.webcam-wrapper.mood-mode video,
+.webcam-wrapper.mood-mode canvas,
+.webcam-wrapper.mood-mode .overlay-text {
+  display: none !important;
+}
+
+/* 🔵 상단 로고 중앙 정렬 */
+.top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* ☰ 햄버거 메뉴 왼쪽 고정 */
+.hamburger {
+  position: absolute;
+  left: 20px;
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* 🔷 로고 중앙 고정 */
+.logo {
+  height: 28px;
+  object-fit: contain;
+  pointer-events: none;
 }
