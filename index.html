@@ -121,20 +121,11 @@
       <img id="cam-image" src="image/explain.png" alt="캠 화면 이미지" />
       <div class="overlay-text" id="overlay-status" style="display: none;"></div>
 
-      <!-- 감성 모드 오버레이 -->
+      <!-- 감성 모드 오버레이 (iframe은 JS로 삽입) -->
       <div id="mood-overlay">
         <div class="mood-box">
           <p class="mood-title">지금은 집중을 위한 BGM 모드 🎧</p>
-          <iframe
-            id="mood-video-iframe"
-            width="1000"
-            height="562"
-            src="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&mute=0&controls=1&loop=1&playlist=jfKfPfyJRdk"
-            title="lofi hip hop radio - beats to relax/study to"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-          ></iframe>
+          <!-- 유튜브 iframe은 JavaScript에서 동적으로 삽입 -->
         </div>
       </div>
 

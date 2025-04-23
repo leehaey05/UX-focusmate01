@@ -26,6 +26,28 @@ moodModeBtn.addEventListener("click", () => {
   webcamWrapper.classList.toggle("mood-mode", moodModeOn);
   moodOverlay.style.display = moodModeOn ? "block" : "none";
   moodModeBtn.textContent = moodModeOn ? "👀" : "🎧";
+
+  const moodBox = document.querySelector(".mood-box");
+  const oldIframe = document.getElementById("mood-video-iframe");
+
+  if (moodModeOn) {
+    // 동적 iframe 삽입
+    if (!oldIframe) {
+      const iframe = document.createElement("iframe");
+      iframe.id = "mood-video-iframe";
+      iframe.width = "100%";
+      iframe.height = "100%";
+      iframe.src = "https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&mute=0&controls=1&loop=1&playlist=jfKfPfyJRdk";
+      iframe.title = "lofi hip hop radio - beats to relax/study to";
+      iframe.frameBorder = "0";
+      iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+      iframe.allowFullscreen = true;
+      moodBox.appendChild(iframe);
+    }
+  } else {
+    // 감성 모드 해제 시 iframe 제거
+    if (oldIframe) oldIframe.remove();
+  }
 });
 
 // 📦 모델 로드
