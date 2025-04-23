@@ -1,0 +1,108 @@
+/* 📝 집중 시간 분석 영역 전체 */
+#stats-content {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+/* 분석 전 이미지 영역 */
+#focus-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 320px;
+  height: 250px;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+#focus-image-container img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* 각각의 시간 표시 박스 */
+.stats-item {
+  background: #f5f5f5;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 300px;
+  font-size: 1rem;
+  font-weight: 500;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  margin-bottom: 14px;
+}
+
+.stats-item .label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stats-item .time {
+  font-family: monospace;
+  min-width: 80px;
+  text-align: right;
+}
+
+#focus-stats-graph {
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 캔버스 자체 크기 조정 (js에서 생성될 때 canvas 태그가 들어감) */
+#focus-stats-graph canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+
+
+/* 막대 그래프 영역 */
+#focus-bar-graph {
+  width: 300px;
+  margin-top: 30px;
+}
+
+/* 막대 그래프 스타일 */
+.bar-row {
+  display: flex;
+  align-items: center;
+  margin: 6px 0;
+}
+
+.bar-label {
+  width: 30px;
+  font-size: 18px;
+  text-align: center;
+}
+
+.bar-color {
+  width: 15px;
+  height: 15px;
+  margin-right: 8px;
+  border-radius: 3px;
+}
+
+.bar-fill {
+  flex: 1;
+  background: #eee;
+  height: 15px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar-inner {
+  height: 100%;
+}

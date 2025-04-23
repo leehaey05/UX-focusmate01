@@ -1,27 +1,13 @@
 let mainTimerInterval = null;
 let mainTimerSeconds = 0;
 
-// --- 햄버거 메뉴 토글 ---
-const wrapper = document.getElementById('wrapper');
-const modeTabs = document.querySelector('.mode-tabs');
-const hamburger = document.getElementById('hamburger');
+
 
 document.querySelectorAll('.mode-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
   });
-});
-
-// ✅ 햄버거 버튼 눌렀을 때 슬라이드 + 책갈피 토글
-hamburger.addEventListener('click', () => {
-  wrapper.classList.toggle('active');
-
-  if (wrapper.classList.contains('active')) {
-    modeTabs.style.left = '360px'; // 슬라이드 오른쪽에 책갈피 보여줌
-  } else {
-    modeTabs.style.left = '-100px'; // 숨김
-  }
 });
 
 
@@ -60,6 +46,7 @@ function createSubject(name = `과목 ${++subjectCount}`, color = colors[subject
       <div class="menu-popup" style="display: none;">
         <button class="edit-name">이름 수정</button>
         <button class="delete-subject">삭제</button>
+        <button class="reset-time">초기화</button>
         <button class="change-color">색상 변경</button>
         <div class="color-palette" style="display:none;"></div>
       </div>
@@ -98,6 +85,8 @@ function initSubject(subject) {
       }, 1000));
       playBtn.textContent = '⏸';
     }
+
+    popup.style.display = 'none';
   });
 
   menuBtn.addEventListener('click', () => {
@@ -136,6 +125,18 @@ function initSubject(subject) {
     subject.remove();
   });
 
+  const resetBtn = subject.querySelector('.reset-time');
+  resetBtn.addEventListener('click', () => {
+    clearInterval(intervals.get(subject));
+    intervals.set(subject, null);
+    timers.set(subject, 0);
+    time.textContent = "00:00:00";
+    playBtn.textContent = '▶';
+    popup.style.display = 'none';
+  });
+
+
+
   colorBtn.addEventListener('click', () => {
     popup.querySelectorAll('button').forEach(btn => btn.style.display = 'none');
     colorPalette.innerHTML = '';
@@ -164,3 +165,31 @@ createSubject("영어", "#ffbe0b");
 createSubject("수학", "#3a86ff");
 createSubject("과학탐구", "#06d6a0");
 createSubject("사회탐구", "#9d4edd");
+
+
+// ✅ 모드 탭이나 햄버거 눌렀을 때 모든 메뉴 팝업 닫기 (한 번만 실행되도록 여기로 위치 이동!)
+document.querySelectorAll('.mode-tab, #hamburger').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.menu-popup').forEach(p => p.style.display = 'none');
+  });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const slideContainer = document.getElementById('slide-container');
+  const timerContent = document.getElementById('timer-content');
+  const todoContent = document.getElementById('todo-content');
+  const statsContent = document.getElementById('stats-content'); // 📝 분석 UI
+
+  document.querySelectorAll('.mode-tab').forEach((tab, index) => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      slideContainer.style.display = 'block';
+      timerContent.style.display = index === 0 ? 'block' : 'none';
+      todoContent.style.display = index === 1 ? 'block' : 'none';
+      statsContent.style.display = index === 2 ? 'block' : 'none';
+    });
+  });
+});
+
